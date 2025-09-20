@@ -1,1 +1,1 @@
-# mm-backend-go
+# go-ddd-clean-starter
