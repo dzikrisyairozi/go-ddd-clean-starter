@@ -307,10 +307,10 @@ Database schema migrations are shared infrastructure.
 infrastructure/
 └── database/
     └── migrations/           # All database migrations
-        ├── 000001_create_users_table.up.sql
-        ├── 000001_create_users_table.down.sql
-        ├── 000002_create_products_table.up.sql
-        └── 000002_create_products_table.down.sql
+        ├── 000001_init.up.sql
+        ├── 000001_init.down.sql
+        ├── 000002_create_users_table.up.sql
+        └── 000002_create_users_table.down.sql
 ```
 
 **Note**: Database connection setup (`postgres.go`) is in `internal/platform/database/`, not here.
@@ -374,6 +374,229 @@ sqlc generate
 - Single connection pool in `internal/platform/database/postgres.go`
 - Injected into all domain repositories
 
+## API Documentation (OpenAPI + Scalar)
+
+### OpenAPI Specification
+
+**Location**: `docs/openapi/openapi.yaml`
+
+**Purpose**: API contract documentation using OpenAPI 3.0 specification.
+
+```yaml
+# docs/openapi/openapi.yaml
+openapi: 3.0.0
+info:
+  title: Go DDD Clean Starter API
+  version: 1.0.0
+  description: RESTful API built with DDD and Clean Architecture
+  contact:
+    name: API Support
+    email: support@example.com
+
+servers:
+  - url: http://localhost:3000/api/v1
+    description: Development server
+  - url: https://api.yourdomain.com/api/v1
+    description: Production server
+
+paths:
+  /users:
+    post:
+      summary: Create a new user
+      tags:
+        - Users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          description: Invalid request
+        '409':
+          description: Email already exists
+
+  /users/{id}:
+    get:
+      summary: Get user by ID
+      tags:
+        - Users
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: User found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '404':
+          description: User not found
+
+components:
+  schemas:
+    CreateUserRequest:
+      type: object
+      required:
+        - email
+        - name
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        name:
+          type: string
+          minLength: 2
+          maxLength: 100
+          example: John Doe
+        password:
+          type: string
+          minLength: 8
+          example: SecurePass123!
+    
+    UserResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+```
+
+### Scalar Integration
+
+**Scalar** provides a beautiful, interactive API documentation UI powered by your OpenAPI spec.
+
+#### Setup Scalar Endpoint
+
+```go
+// internal/platform/docs/handler.go
+package docs
+
+import (
+    "github.com/gofiber/fiber/v2"
+)
+
+func RegisterDocsRoutes(app *fiber.App) {
+    // Serve OpenAPI spec
+    app.Get("/openapi.yaml", func(c *fiber.Ctx) error {
+        return c.SendFile("./docs/openapi/openapi.yaml")
+    })
+    
+    // Serve Scalar UI
+    app.Get("/docs", func(c *fiber.Ctx) error {
+        html := `<!DOCTYPE html>
+<html>
+<head>
+    <title>API Documentation</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+</head>
+<body>
+    <script 
+        id="api-reference" 
+        data-url="/openapi.yaml"
+        data-configuration='{"theme":"purple"}'>
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
+</body>
+</html>`
+        c.Set("Content-Type", "text/html")
+        return c.SendString(html)
+    })
+}
+```
+
+#### Register in main.go
+
+```go
+// cmd/api/main.go
+package main
+
+import (
+    "github.com/gofiber/fiber/v2"
+    "yourproject/internal/platform/docs"
+    // ... other imports
+)
+
+func main() {
+    app := fiber.New()
+    
+    // Register API documentation (development only)
+    if config.Env == "development" {
+        docs.RegisterDocsRoutes(app)
+    }
+    
+    // ... rest of setup
+    
+    app.Listen(":3000")
+}
+```
+
+#### Access Documentation
+
+- **Scalar UI**: `http://localhost:3000/docs`
+- **OpenAPI Spec**: `http://localhost:3000/openapi.yaml`
+
+### Why OpenAPI + Scalar?
+
+**Benefits**:
+- ✅ **Interactive API Explorer**: Test endpoints directly from the browser
+- ✅ **Type-Safe Contracts**: Define request/response schemas upfront
+- ✅ **Client Generation**: Generate TypeScript/Python/etc. clients from spec
+- ✅ **API-First Development**: Design API before implementation
+- ✅ **Better than Swagger UI**: Faster, more modern, better UX
+- ✅ **Documentation as Code**: Version controlled with your codebase
+
+**Workflow**:
+1. Define endpoint in `openapi.yaml`
+2. Implement handler following the spec
+3. Test via Scalar UI
+4. Frontend/mobile teams use the spec to generate clients
+
+### OpenAPI Best Practices
+
+1. **Keep spec updated** - Update `openapi.yaml` when adding/changing endpoints
+2. **Use components** - Define reusable schemas in `components/schemas`
+3. **Add examples** - Include example requests/responses
+4. **Document errors** - Specify all possible error responses
+5. **Version your API** - Use `/api/v1`, `/api/v2` for breaking changes
+6. **Validate spec** - Use `openapi-generator validate` or similar tools
+
+### Alternative: Generate from Code
+
+If you prefer code-first approach, you can use:
+- **swaggo/swag** - Generate OpenAPI from Go comments
+- **ogen** - Generate Go code from OpenAPI spec
+
+However, for a **docs-first** starter, manually maintaining `openapi.yaml` is recommended as it encourages API design before implementation.
+
 ## Platform Layer (Technical Infrastructure)
 
 **Location**: `internal/platform/`
@@ -395,6 +618,8 @@ internal/platform/
 │   └── config.go            # Application configuration
 ├── errors/
 │   └── errors.go            # Common error types
+├── docs/
+│   └── handler.go           # API documentation handler (Scalar)
 └── utils/
     └── validator.go         # Validation utilities
 ```
@@ -465,6 +690,8 @@ go-ddd-clean-starter/
 │       │   └── config.go
 │       ├── errors/
 │       │   └── errors.go
+│       ├── docs/
+│       │   └── handler.go            # API docs handler (Scalar)
 │       └── utils/
 │           └── validator.go
 │
@@ -475,7 +702,9 @@ go-ddd-clean-starter/
 │           └── 000001_create_users_table.down.sql
 │
 ├── docs/
-│   └── ARCHITECTURE.md
+│   ├── ARCHITECTURE.md
+│   └── openapi/
+│       └── openapi.yaml               # OpenAPI 3.0 specification
 │
 ├── sqlc.yaml                          # SQLC config (generates for all domains)
 ├── go.mod
@@ -555,7 +784,10 @@ go-ddd-clean-starter/
 mkdir -p infrastructure/database/migrations
 
 # Create platform layer
-mkdir -p internal/platform/{database,logger,middleware,config,errors,utils}
+mkdir -p internal/platform/{database,logger,middleware,config,errors,docs,utils}
+
+# Create OpenAPI documentation
+mkdir -p docs/openapi
 ```
 
 ### Step 2: Create Domain Structure
@@ -603,11 +835,17 @@ EOF
 - Create HTTP handlers
 - Define request/response models
 
-### Step 8: Wire in main.go
+### Step 8: Setup API Documentation
+- Create `docs/openapi/openapi.yaml` with API specification
+- Create Scalar handler in `internal/platform/docs/handler.go`
+- Register docs routes in `main.go` (development only)
+
+### Step 9: Wire in main.go
 - Initialize database connection pool
 - Initialize platform components (logger, config)
 - Create domain services with dependency injection
 - Register domain routes with Fiber
+- Register API documentation routes (if development)
 - Start server
 
 ## Example: Adding a New Domain
