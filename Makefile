@@ -63,6 +63,18 @@ migrate-create: ## Create a new migration file (usage: make migrate-create name=
 	@echo "$(GREEN)Creating migration: $(name)$(NC)"
 	migrate create -ext sql -dir infrastructure/database/migrations -seq $(name)
 
+db-create: ## Create the database
+	@echo "$(GREEN)Creating database...$(NC)"
+	@bash scripts/migrate.sh create
+
+db-drop: ## Drop the database (with confirmation)
+	@echo "$(YELLOW)Dropping database...$(NC)"
+	@bash scripts/migrate.sh drop
+
+db-reset: ## Reset database (drop, create, and migrate)
+	@echo "$(GREEN)Resetting database...$(NC)"
+	@bash scripts/migrate.sh reset
+
 docker-up: ## Start Docker containers (PostgreSQL)
 	@echo "$(GREEN)Starting Docker containers...$(NC)"
 	docker-compose up -d
