@@ -35,8 +35,9 @@ go.work
 .DS_Store
 Thumbs.db
 
-# SQLC generated code (regenerate with `make sqlc-generate`)
-**/sqlc/*.go
+# SQLC generated code (uncomment to exclude from git)
+# **/sqlc/*.go
+# !**/sqlc/README.md
 
 # Logs
 *.log
