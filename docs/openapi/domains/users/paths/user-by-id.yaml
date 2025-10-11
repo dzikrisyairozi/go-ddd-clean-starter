@@ -1,0 +1,73 @@
+get:
+  tags:
+    - Users
+  summary: Get user by ID
+  description: Retrieve a single user by their unique identifier
+  operationId: getUser
+  parameters:
+    - $ref: '../../components/parameters.yaml#/UserId'
+  responses:
+    '200':
+      description: User found
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/user-response.yaml'
+    '400':
+      $ref: '../../components/responses.yaml#/BadRequest'
+    '404':
+      $ref: '../../components/responses.yaml#/NotFound'
+    '500':
+      $ref: '../../components/responses.yaml#/InternalServerError'
+
+put:
+  tags:
+    - Users
+  summary: Update user
+  description: Update user's name and email
+  operationId: updateUser
+  parameters:
+    - $ref: '../../components/parameters.yaml#/UserId'
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '../schemas/update-user-request.yaml'
+  responses:
+    '200':
+      description: User updated successfully
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/user-response.yaml'
+    '400':
+      $ref: '../../components/responses.yaml#/BadRequest'
+    '404':
+      $ref: '../../components/responses.yaml#/NotFound'
+    '409':
+      description: Email already exists
+      content:
+        application/json:
+          schema:
+            $ref: '../../components/schemas/error.yaml#/ErrorResponse'
+    '500':
+      $ref: '../../components/responses.yaml#/InternalServerError'
+
+delete:
+  tags:
+    - Users
+  summary: Delete user
+  description: Soft delete a user (sets is_active to false)
+  operationId: deleteUser
+  parameters:
+    - $ref: '../../components/parameters.yaml#/UserId'
+  responses:
+    '204':
+      description: User deleted successfully (no content)
+    '400':
+      $ref: '../../components/responses.yaml#/BadRequest'
+    '404':
+      $ref: '../../components/responses.yaml#/NotFound'
+    '500':
+      $ref: '../../components/responses.yaml#/InternalServerError'

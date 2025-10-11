@@ -1,0 +1,40 @@
+# Shared/common response definitions
+
+BadRequest:
+  description: Bad request - invalid input
+  content:
+    application/json:
+      schema:
+        $ref: './schemas/error.yaml#/ErrorResponse'
+      examples:
+        invalidRequest:
+          summary: Invalid request
+          value:
+            error: invalid_request
+            message: Invalid request body
+
+NotFound:
+  description: Resource not found
+  content:
+    application/json:
+      schema:
+        $ref: './schemas/error.yaml#/ErrorResponse'
+      examples:
+        userNotFound:
+          summary: User not found
+          value:
+            error: not_found
+            message: User not found
+
+InternalServerError:
+  description: Internal server error
+  content:
+    application/json:
+      schema:
+        $ref: './schemas/error.yaml#/ErrorResponse'
+      examples:
+        serverError:
+          summary: Server error
+          value:
+            error: internal_error
+            message: An internal error occurred

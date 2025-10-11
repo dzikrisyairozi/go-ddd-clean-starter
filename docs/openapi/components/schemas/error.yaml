@@ -1,0 +1,21 @@
+# Shared error response schema
+
+ErrorResponse:
+  type: object
+  properties:
+    error:
+      type: string
+      description: Error code
+      example: not_found
+    message:
+      type: string
+      description: Human-readable error message
+      example: User not found
+    fields:
+      type: object
+      additionalProperties:
+        type: string
+      description: Field-specific validation errors
+      example:
+        email: Invalid email format
+        name: Name is required

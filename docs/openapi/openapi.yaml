@@ -1,0 +1,55 @@
+
+openapi: 3.0.3
+info:
+  title: Go DDD Clean Starter API
+  description: |
+    A clean architecture REST API built with Go, following Domain-Driven Design principles.
+    
+    ## Architecture
+    - **Domain Layer**: Pure business logic with no external dependencies
+    - **Application Layer**: Use cases and business workflows
+    - **Infrastructure Layer**: Database access with SQLC
+    - **Handler Layer**: HTTP endpoints with Fiber
+    
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@example.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:3000
+    description: Development server
+  - url: https://api.example.com
+    description: Production server
+
+tags:
+  - name: Users
+    description: User management endpoints
+
+paths:
+  # Users domain endpoints
+  /users:
+    $ref: './domains/users/paths/users.yaml'
+  /users/{id}:
+    $ref: './domains/users/paths/user-by-id.yaml'
+  /users/{id}/password:
+    $ref: './domains/users/paths/change-password.yaml'
+
+components:
+  # Shared/common components
+  parameters:
+    $ref: './components/parameters.yaml'
+  
+  responses:
+    $ref: './components/responses.yaml'
+  
+  schemas:
+    # Domain-specific schemas are imported in their respective path files
+    # Common/shared schemas can be defined here
+    ErrorResponse:
+      $ref: './components/schemas/error.yaml#/ErrorResponse'
+    SuccessResponse:
+      $ref: './components/schemas/success.yaml#/SuccessResponse'
