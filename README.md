@@ -134,21 +134,21 @@ make run
 go run cmd/api/main.go
 ```
 
-The server will start on `http://localhost:3000`
+The server will start on `http://localhost:6969`
 
 ## 📚 API Documentation
 
 Once the server is running, access the interactive API documentation:
 
-- **Scalar UI**: http://localhost:3000/docs
-- **OpenAPI Spec**: http://localhost:3000/openapi.yaml
+- **Scalar UI**: http://localhost:6969/docs
+- **OpenAPI Spec**: http://localhost:6969/openapi.yaml
 
 ## 🧪 Testing the API
 
 ### Create a User
 
 ```bash
-curl -X POST http://localhost:3000/api/v1/users \
+curl -X POST http://localhost:6969/api/v1/users \
   -H "Content-Type: application/json" \
   -d '{
     "email": "john@example.com",
@@ -160,13 +160,13 @@ curl -X POST http://localhost:3000/api/v1/users \
 ### Get User by ID
 
 ```bash
-curl http://localhost:3000/api/v1/users/{user-id}
+curl http://localhost:6969/api/v1/users/{user-id}
 ```
 
 ### Update User
 
 ```bash
-curl -X PUT http://localhost:3000/api/v1/users/{user-id} \
+curl -X PUT http://localhost:6969/api/v1/users/{user-id} \
   -H "Content-Type: application/json" \
   -d '{
     "name": "John Updated",
@@ -177,7 +177,7 @@ curl -X PUT http://localhost:3000/api/v1/users/{user-id} \
 ### Delete User
 
 ```bash
-curl -X DELETE http://localhost:3000/api/v1/users/{user-id}
+curl -X DELETE http://localhost:6969/api/v1/users/{user-id}
 ```
 
 ## 🔧 Development Commands

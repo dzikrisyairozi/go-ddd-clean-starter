@@ -54,7 +54,7 @@ func Load() (*Config, error) {
 	cfg := &Config{
 		App: AppConfig{
 			Environment: getEnv("APP_ENV", "development"),
-			Port:        getEnv("APP_PORT", "3000"),
+			Port:        getEnv("APP_PORT", "6969"),
 		},
 		Database: DatabaseConfig{
 			Host:            getEnv("DB_HOST", "localhost"),

@@ -1,55 +1,403 @@
-
-openapi: 3.0.3
+openapi: 3.0.0
 info:
   title: Go DDD Clean Starter API
-  description: |
-    A clean architecture REST API built with Go, following Domain-Driven Design principles.
-    
-    ## Architecture
-    - **Domain Layer**: Pure business logic with no external dependencies
-    - **Application Layer**: Use cases and business workflows
-    - **Infrastructure Layer**: Database access with SQLC
-    - **Handler Layer**: HTTP endpoints with Fiber
-    
   version: 1.0.0
+  description: RESTful API built with DDD and Clean Architecture
   contact:
     name: API Support
     email: support@example.com
-  license:
-    name: MIT
-    url: https://opensource.org/licenses/MIT
 
 servers:
-  - url: http://localhost:3000
+  - url: http://localhost:6969
     description: Development server
-  - url: https://api.example.com
+  - url: https://api.yourdomain.com
     description: Production server
 
-tags:
-  - name: Users
-    description: User management endpoints
-
 paths:
-  # Users domain endpoints
+  /health:
+    get:
+      summary: Health check endpoint
+      tags:
+        - System
+      responses:
+        '200':
+          description: System is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: healthy
+                  time:
+                    type: string
+                    format: date-time
+                    example: "2023-12-27T16:00:00Z"
+
   /users:
-    $ref: './domains/users/paths/users.yaml'
+    post:
+      summary: Create a new user
+      tags:
+        - Users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+            examples:
+              example1:
+                summary: Example user creation
+                value:
+                  email: user@example.com
+                  name: John Doe
+                  password: SecurePass123!
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Email already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    get:
+      summary: List users (paginated)
+      tags:
+        - Users
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          description: Number of users to return
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+          description: Number of users to skip
+      responses:
+        '200':
+          description: List of users
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserListResponse'
+        '400':
+          description: Invalid query parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /users/{id}:
-    $ref: './domains/users/paths/user-by-id.yaml'
+    get:
+      summary: Get user by ID
+      tags:
+        - Users
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: User ID
+      responses:
+        '200':
+          description: User found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          description: Invalid user ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      summary: Update a user
+      tags:
+        - Users
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: User ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+            examples:
+              example1:
+                summary: Example user update
+                value:
+                  email: newemail@example.com
+                  name: Jane Doe
+      responses:
+        '200':
+          description: User updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Email already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      summary: Delete a user (soft delete)
+      tags:
+        - Users
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: User ID
+      responses:
+        '204':
+          description: User deleted successfully
+        '400':
+          description: Invalid user ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /users/{id}/password:
-    $ref: './domains/users/paths/change-password.yaml'
+    post:
+      summary: Change user password
+      tags:
+        - Users
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: User ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePasswordRequest'
+            examples:
+              example1:
+                summary: Example password change
+                value:
+                  old_password: OldPass123!
+                  new_password: NewPass123!
+      responses:
+        '204':
+          description: Password changed successfully
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Invalid old password
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
 components:
-  # Shared/common components
-  parameters:
-    $ref: './components/parameters.yaml'
-  
-  responses:
-    $ref: './components/responses.yaml'
-  
   schemas:
-    # Domain-specific schemas are imported in their respective path files
-    # Common/shared schemas can be defined here
+    CreateUserRequest:
+      type: object
+      required:
+        - email
+        - name
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: user@example.com
+          description: User email address (must be unique)
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: John Doe
+          description: User full name
+        password:
+          type: string
+          minLength: 8
+          example: SecurePass123!
+          description: User password (minimum 8 characters)
+
+    UpdateUserRequest:
+      type: object
+      required:
+        - email
+        - name
+      properties:
+        email:
+          type: string
+          format: email
+          example: user@example.com
+          description: User email address (must be unique)
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: John Doe
+          description: User full name
+
+    ChangePasswordRequest:
+      type: object
+      required:
+        - old_password
+        - new_password
+      properties:
+        old_password:
+          type: string
+          example: OldPass123!
+          description: Current password
+        new_password:
+          type: string
+          minLength: 8
+          example: NewPass123!
+          description: New password (minimum 8 characters)
+
+    UserResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+          description: Unique user identifier
+        email:
+          type: string
+          format: email
+          example: user@example.com
+          description: User email address
+        name:
+          type: string
+          example: John Doe
+          description: User full name
+        is_active:
+          type: boolean
+          example: true
+          description: Whether the user account is active
+        created_at:
+          type: string
+          format: date-time
+          example: "2023-12-27T16:00:00Z"
+          description: Timestamp when the user was created
+        updated_at:
+          type: string
+          format: date-time
+          example: "2023-12-27T16:00:00Z"
+          description: Timestamp when the user was last updated
+
+    UserListResponse:
+      type: object
+      properties:
+        users:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserResponse'
+          description: List of users
+        total:
+          type: integer
+          format: int64
+          example: 100
+          description: Total number of users available
+        limit:
+          type: integer
+          example: 20
+          description: Number of users returned in this response
+        offset:
+          type: integer
+          example: 0
+          description: Number of users skipped
+        has_more:
+          type: boolean
+          example: true
+          description: Whether there are more users available
+
     ErrorResponse:
-      $ref: './components/schemas/error.yaml#/ErrorResponse'
-    SuccessResponse:
-      $ref: './components/schemas/success.yaml#/SuccessResponse'
+      type: object
+      properties:
+        error:
+          type: string
+          example: invalid_request
+          description: Error code
+        message:
+          type: string
+          example: Invalid email format
+          description: Human-readable error message
+        fields:
+          type: object
+          additionalProperties:
+            type: string
+          example:
+            email: Invalid email format
+          description: Field-specific error messages

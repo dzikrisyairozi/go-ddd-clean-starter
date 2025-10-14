@@ -75,7 +75,7 @@ func (l *Logger) Debug(msg string, fields ...interface{}) {
 Info logs an informational message with optional key-value field pairs.
 Info messages are logged if the logger level is DEBUG or INFO.
 Useful for general application flow information.
-Example: logger.Info("Server started", "port", 3000)
+Example: logger.Info("Server started", "port", 6969)
 */
 func (l *Logger) Info(msg string, fields ...interface{}) {
 	if l.level <= INFO {

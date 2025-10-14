@@ -202,7 +202,7 @@ func main() {
     userHandler.RegisterRoutes(api, userService)      // Users domain
     productHandler.RegisterRoutes(api, productService) // Products domain
     
-    app.Listen(":3000")
+    app.Listen(":6969")
 }
 ```
 
@@ -394,7 +394,7 @@ info:
     email: support@example.com
 
 servers:
-  - url: http://localhost:3000/api/v1
+  - url: http://localhost:6969/api/v1
     description: Development server
   - url: https://api.yourdomain.com/api/v1
     description: Production server
@@ -555,14 +555,14 @@ func main() {
     
     // ... rest of setup
     
-    app.Listen(":3000")
+    app.Listen(":6969")
 }
 ```
 
 #### Access Documentation
 
-- **Scalar UI**: `http://localhost:3000/docs`
-- **OpenAPI Spec**: `http://localhost:3000/openapi.yaml`
+- **Scalar UI**: `http://localhost:6969/docs`
+- **OpenAPI Spec**: `http://localhost:6969/openapi.yaml`
 
 ### Why OpenAPI + Scalar?
 
